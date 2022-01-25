@@ -1,6 +1,8 @@
 from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi_pagination import Page
+from fastapi_pagination.ext.sqlalchemy import paginate
 from sqlalchemy.orm import Session
 
 from app import crud, models, schemas
@@ -14,7 +16,7 @@ router = APIRouter(
 )
 
 
-@router.post("/", response_model=schemas.Gift)
+@router.post("", response_model=schemas.Gift)
 def create_gift(
     gift_in: schemas.GiftCreate,
     db: Session = Depends(get_db),
@@ -56,7 +58,7 @@ def read_gift(
     return gift
 
 
-@router.get("/", response_model=List[schemas.Gift])
+@router.get("", response_model=Page[schemas.Gift])
 def read_gifts(
     skip: int = 0, limit: int = 100, db: Session = Depends(get_db)
 ) -> List[models.Gift]:
@@ -64,8 +66,7 @@ def read_gifts(
     Retrieve gifts.
     """
     gifts = crud.gift.get_multi(db, skip=skip, limit=limit)
-
-    return gifts
+    return  paginate(gifts)
 
 
 @router.delete("/{id}", response_model=schemas.Gift)
